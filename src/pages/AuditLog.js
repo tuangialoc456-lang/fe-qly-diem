@@ -15,11 +15,16 @@ export default function AuditLog() {
 
   const loadLogs = async () => {
     try {
+      setLoading(true);
       const params = filterBang ? { bang: filterBang } : {};
       const res = await auditAPI.danhSachNhatKy(params);
-      setLogs(res.data);
+      setLogs(res.data || []);
+      setAlert(null);
     } catch (err) {
-      setAlert({ type: 'error', message: 'Lỗi tải nhật ký thao tác' });
+      setAlert({
+        type: 'error',
+        message: err.response?.data?.message || 'Lỗi tải nhật ký thao tác',
+      });
     } finally {
       setLoading(false);
     }
@@ -33,8 +38,8 @@ export default function AuditLog() {
         <h2>📋 Nhật ký Thao tác</h2>
         {alert && <Alert type={alert.type} message={alert.message} onClose={() => setAlert(null)} />}
 
-        <div className="form-group">
-          <label>Lọc theo bảng:</label>
+        <div className="form-group" style={{ marginBottom: '20px' }}>
+          <label style={{ fontWeight: 'bold', marginRight: '10px' }}>Lọc theo bảng:</label>
           <select value={filterBang} onChange={(e) => setFilterBang(e.target.value)}>
             <option value="">-- Tất cả --</option>
             <option value="nguoi_dung">Người dùng</option>
@@ -57,28 +62,48 @@ export default function AuditLog() {
           </thead>
           <tbody>
             {logs.length === 0 ? (
-              <tr><td colSpan="5" style={{ textAlign: 'center', color: '#999' }}>Không có dữ liệu</td></tr>
+              <tr>
+                <td colSpan="5" style={{ textAlign: 'center', color: '#999' }}>
+                  Không có dữ liệu
+                </td>
+              </tr>
             ) : (
-              logs.map(log => (
+              logs.map((log) => (
                 <tr key={log.id}>
                   <td style={{ fontSize: '12px' }}>
                     {new Date(log.createdAt).toLocaleString('vi-VN')}
                   </td>
-                  <td><code style={{ background: '#f0f0f0', padding: '2px 6px', borderRadius: '3px' }}>{log.bang}</code></td>
                   <td>
-                    <span style={{
-                      display: 'inline-block',
-                      padding: '4px 8px',
-                      borderRadius: '3px',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      background: log.hanhDong === 'TAO' ? '#d4edda' :
-                                  log.hanhDong === 'SUA' ? '#fff3cd' :
-                                  log.hanhDong === 'XOA' ? '#f8d7da' : '#d1ecf1',
-                      color: log.hanhDong === 'TAO' ? '#155724' :
-                             log.hanhDong === 'SUA' ? '#856404' :
-                             log.hanhDong === 'XOA' ? '#721c24' : '#0c5460'
-                    }}>
+                    <code style={{ background: '#f0f0f0', padding: '2px 6px', borderRadius: '3px' }}>
+                      {log.bang}
+                    </code>
+                  </td>
+                  <td>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        padding: '4px 8px',
+                        borderRadius: '3px',
+                        fontSize: '12px',
+                        fontWeight: 'bold',
+                        background:
+                          log.hanhDong === 'TAO'
+                            ? '#d4edda'
+                            : log.hanhDong === 'SUA'
+                            ? '#fff3cd'
+                            : log.hanhDong === 'XOA'
+                            ? '#f8d7da'
+                            : '#d1ecf1',
+                        color:
+                          log.hanhDong === 'TAO'
+                            ? '#155724'
+                            : log.hanhDong === 'SUA'
+                            ? '#856404'
+                            : log.hanhDong === 'XOA'
+                            ? '#721c24'
+                            : '#0c5460',
+                      }}
+                    >
                       {log.hanhDong}
                     </span>
                   </td>

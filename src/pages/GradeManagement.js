@@ -23,28 +23,41 @@ export default function GradeManagement() {
       const res = await classAPI.danhSach();
       setClasses(res.data);
     } catch (err) {
-      setAlert({ type: 'error', message: 'Lỗi tải danh sách lớp' });
+      setAlert({ 
+        type: 'error', 
+        message: err.response?.data?.message || 'Lỗi tải danh sách lớp' 
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleSelectClass = async (classId) => {
+    if (!classId) {
+      setSelectedClass(null);
+      setGrades([]);
+      return;
+    }
+
     try {
       setSelectedClass(classId);
       const res = await gradeAPI.diemTheoLop(classId);
       setGrades(res.data);
     } catch (err) {
-      setAlert({ type: 'error', message: 'Lỗi tải danh sách điểm' });
+      setGrades([]);
+      setAlert({ 
+        type: 'error', 
+        message: err.response?.data?.message || 'Lỗi tải danh sách điểm' 
+      });
     }
   };
 
   const handleEditStart = (grade) => {
     setEditingId(grade.id);
     setEditValues({
-      diemChuyenCan: grade.diemChuyenCan || '',
-      diemGiuaKy: grade.diemGiuaKy || '',
-      diemCuoiKy: grade.diemCuoiKy || '',
+      diemChuyenCan: grade.diemChuyenCan ?? '',
+      diemGiuaKy: grade.diemGiuaKy ?? '',
+      diemCuoiKy: grade.diemCuoiKy ?? '',
     });
   };
 
@@ -62,11 +75,17 @@ export default function GradeManagement() {
       await gradeAPI.capNhatDiem(id, editValues);
       setAlert({ type: 'success', message: 'Cập nhật điểm thành công' });
       setEditingId(null);
-      const selectedClassId = selectedClass;
-      setSelectedClass(null);
-      setTimeout(() => handleSelectClass(selectedClassId), 500);
+      
+      // Tải lại dữ liệu trực tiếp, không làm nháy lại state chọn lớp
+      if (selectedClass) {
+        const res = await gradeAPI.diemTheoLop(selectedClass);
+        setGrades(res.data);
+      }
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Lỗi cập nhật điểm' });
+      setAlert({ 
+        type: 'error', 
+        message: err.response?.data?.message || 'Lỗi cập nhật điểm' 
+      });
     }
   };
 
@@ -76,9 +95,13 @@ export default function GradeManagement() {
       await gradeAPI.chotKyLop(selectedClass);
       setAlert({ type: 'success', message: 'Chốt điểm và ký số thành công!' });
       setSelectedClass(null);
+      setGrades([]);
       loadClasses();
     } catch (err) {
-      setAlert({ type: 'error', message: err.response?.data?.message || 'Lỗi chốt điểm' });
+      setAlert({ 
+        type: 'error', 
+        message: err.response?.data?.message || 'Lỗi chốt điểm' 
+      });
     }
   };
 
@@ -94,7 +117,13 @@ export default function GradeManagement() {
 
         <div className="form-group">
           <label>Chọn lớp học phần:</label>
-          <select value={selectedClass || ''} onChange={(e) => handleSelectClass(parseInt(e.target.value) || null)}>
+          <select 
+            value={selectedClass || ''} 
+            onChange={(e) => {
+              const val = e.target.value ? parseInt(e.target.value, 10) : null;
+              handleSelectClass(val);
+            }}
+          >
             <option value="">-- Chọn lớp --</option>
             {classes.map(cls => (
               <option key={cls.id} value={cls.id}>

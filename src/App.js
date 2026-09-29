@@ -9,7 +9,7 @@ import Loading from './components/Loading';
 // Pages
 import Login from './pages/Login';
 import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword'; // <-- Import trang Quên mật khẩu
+import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import UserManagement from './pages/UserManagement';
 import SubjectManagement from './pages/SubjectManagement';
@@ -17,6 +17,9 @@ import ClassManagement from './pages/ClassManagement';
 import GradeManagement from './pages/GradeManagement';
 import Transcript from './pages/Transcript';
 import AuditLog from './pages/AuditLog';
+import StudentPortal from './pages/StudentPortal';
+import LecturerGradeInput from './pages/LecturerGradeInput';
+import StudentTranscript from './pages/StudentTranscript';
 
 export default function App() {
   const { user, dang_tai } = useContext(AuthContext);
@@ -77,8 +80,35 @@ export default function App() {
         <Route
           path="/diem"
           element={
-            <ProtectedRoute roles={['ADMIN', 'GIANG_VIEN']}>
+            <ProtectedRoute roles={['ADMIN']}>
               <GradeManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/nhap-diem-giang-vien"
+          element={
+            <ProtectedRoute roles={['GIANG_VIEN']}>
+              <LecturerGradeInput />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* TRANG DÀNH RIÊNG CHO SINH VIÊN - ADMIN VÀ GIẢNG VIÊN BỊ CHẶN HOÀN TOÀN */}
+        <Route
+          path="/sinh-vien/portal"
+          element={
+            <ProtectedRoute roles={['SINH_VIEN']}>
+              <StudentPortal />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/bang-diem"
+          element={
+            <ProtectedRoute roles={['ADMIN', 'GIANG_VIEN']}>
+              <StudentTranscript />
             </ProtectedRoute>
           }
         />
@@ -87,14 +117,6 @@ export default function App() {
           element={
             <ProtectedRoute roles={['ADMIN']}>
               <AuditLog />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/bang-diem"
-          element={
-            <ProtectedRoute roles={['ADMIN', 'GIANG_VIEN', 'SINH_VIEN']}>
-              <Transcript />
             </ProtectedRoute>
           }
         />
